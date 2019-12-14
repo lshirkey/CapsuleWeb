@@ -1,0 +1,401 @@
+<div class="container-fluid" *ngIf="activediv == 1">
+    <h5>Search Task</h5>
+    <hr />
+    <table class="table table-borderless">
+        <tbody>
+            <tr>
+                <td>Task</td>
+                <td><input (keyup)="onSearch()" type="text" class="form-control" id="task" [(ngModel)]="search.task"
+                        name="task"></td>
+                <td>Parent Task</td>
+                <td><input (keyup)="onSearch()" type="text" class="form-control" id="pTask" [(ngModel)]="search.pTask" 
+                        name="pTask">
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Priority From</td>
+                <td><input (keyup)="onSearch()" type="number" min="0" max="30" class="form-control" id="fPriority"
+                        required [(ngModel)]="search.fPriority" name="fPriority"
+                        onkeydown="javascript: return event.keyCode === 8 || event.keyCode === 46 ? true : !isNaN(Number(event.key))">
+                </td>
+                <td>Priority To</td>
+                <td><input (keyup)="onSearch()" type="number" min="0" max="30" class="form-control" id="tPriority"
+                        required [(ngModel)]="search.tPriority" name="tPriority"
+                        onkeydown="javascript: return event.keyCode === 8 || event.keyCode === 46 ? true : !isNaN(Number(event.key))">
+                </td>
+                <td>Start Date</td>
+                <td><input (change)="onSearch()" type="date" class="form-control" id="sDate" required
+                        [(ngModel)]="search.sDate" name="sDate">
+                </td>
+                <td>End Date</td>
+                <td><input (change)="onSearch()" type="date" class="form-control" id="eDate" required
+                        [(ngModel)]="search.eDate" name="eDate">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <hr />
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Parent</th>
+                <th>Priority</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody *ngFor="let task of tasks; let i = index">
+            <tr *ngIf="task.taskStatus == 'A' || task.taskStatus == 'E'">
+                <td>{{task.task}}</td>
+                <td>{{task.parentTask}}</td>
+                <td>{{task.priority}}</td>
+                <td>{{task.startDate}}</td>
+                <td>{{task.endDate}}</td>
+                <td style="width:315px;" *ngIf="task.taskStatus == 'A'">
+                    <button type="submit" style="width:90px;" class="btn btn-primary btn-sm"
+                        (click)="onEditTask(task)"> Edit</button>
+                    <button type="submit" style="margin-left:10px;width:90px;" class="btn btn-primary btn-sm"
+                        (click)="onDeleteTask(task)"> Delete</button>
+                    <button type="submit" style="margin-left:10px;width:90px;" class="btn btn-primary btn-sm"
+                        (click)="onEndTask(task)">End Task</button>
+                </td>
+                <td style="width:220px;" *ngIf="task.taskStatus == 'E'">
+                        <button type="submit" style="float:right;width:90px;" class="btn btn-primary btn-sm"
+                            (click)="onViewTask(task)">View</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!--
+    Edit Task Start
+    https://angular.io/guide/form-validation
+-->
+<div class="container-fluid" *ngIf="activediv == 2">
+    <h4>Edit Task</h4>
+    <hr />
+    <form (ngSubmit)="onSubmit()" #editTaskForm="ngForm">
+        <br>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="task">Task Name</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="hidden" id="taskId" name="taskId" [(ngModel)]="editTask.taskId">
+                    <input type="text" class="form-control" id="task" required [(ngModel)]="editTask.task" name="task">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="priority">Priority</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="range" min="0" max="30" value="15" class="form-control" id="priority"
+                        [(ngModel)]="editTask.priority" name="priority" required oninput="priorityOutputId.value = priority.value">
+                    <output name="priorityOutputName" id="priorityOutputId">{{editTask.priority}}</output>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="parentId">Parent Task</label>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-control" id="parentId" name="parentId" required [(ngModel)]="editTask.parentId">
+                        <option *ngFor="let par of parent; let i = index" [value]="parent[i].parentId">
+                            {{parent[i].parentTask}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="startDate">Start Date</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" class="form-control" id="startDate" required data-date-format='YYYY-MM-DD'
+                        [(ngModel)]="editTask.startDate" name="startDate" max="{{editTask.endDate}}" max="{{editTask.endDate}}">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="endDate">End Date</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" class="form-control" id="endDate" required data-date-format='YYYY-MM-DD'
+                        [(ngModel)]="editTask.endDate" name="endDate" min="{{editTask.startDate}}">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-success" [disabled]="!editTaskForm.form.valid"
+                        (click)="onEditTaskSave()">Save</button>
+                    <button type="button" style="float:right;" class="btn btn-success"
+                        (click)="onEditTaskCancel()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!--
+    End Task Start
+-->
+<div class="container-fluid" *ngIf="activediv == 3">
+    <h4>End Task</h4>
+    <hr />
+    <form (ngSubmit)="onSubmit()" #endTaskForm="ngForm">
+        <br>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="task">Task Name</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="hidden" id="taskId" name="taskId" [(ngModel)]="endTask.taskId">
+                    <input type="text" class="form-control" id="task" required [(ngModel)]="endTask.task" name="task" disabled>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="priority">Priority</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="range" min="0" max="30" value="15" class="form-control" id="priority"
+                        [(ngModel)]="endTask.priority" name="priority" required
+                        oninput="priorityOutputId.value = priority.value" disabled>
+                    <output name="priorityOutputName" id="priorityOutputId">{{endTask.priority}}</output>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="parentId">Parent Task</label>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-control" id="parentId" name="parentId" required [(ngModel)]="endTask.parentId" disabled>
+                        <option *ngFor="let par of parent; let i = index" [value]="parent[i].parentId">
+                            {{parent[i].parentTask}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="startDate">Start Date</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" class="form-control" id="startDate" required [(ngModel)]="endTask.startDate"
+                        name="startDate" disabled>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="endDate">End Date</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" class="form-control" id="endDate" required [(ngModel)]="endTask.endDate"
+                        name="endDate" disabled>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-success" [disabled]="!endTaskForm.form.valid"
+                        (click)="onEndTaskSave()">Save</button>
+                    <button type="button" style="float:right;" class="btn btn-success"
+                        (click)="onEndTaskCancel()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!--
+    End Task Start
+-->
+<div class="container-fluid" *ngIf="activediv == 4">
+        <h4>View Task</h4>
+        <hr />
+        <form (ngSubmit)="onSubmit()" #viewTaskForm="ngForm">
+            <br>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="task">Task Name</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="hidden" id="taskId" name="taskId" [(ngModel)]="viewTask.taskId">
+                        <input type="text" class="form-control" id="task" required [(ngModel)]="viewTask.task" name="task" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="priority">Priority</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="range" min="0" max="30" value="15" class="form-control" id="priority"
+                            [(ngModel)]="viewTask.priority" name="priority" required
+                            oninput="priorityOutputId.value = priority.value" disabled>
+                        <output name="priorityOutputName" id="priorityOutputId">{{viewTask.priority}}</output>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="parentId">Parent Task</label>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-control" id="parentId" name="parentId" required [(ngModel)]="viewTask.parentId" disabled>
+                            <option *ngFor="let par of parent; let i = index" [value]="parent[i].parentId">
+                                {{parent[i].parentTask}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="startDate">Start Date</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="date" class="form-control" id="startDate" required [(ngModel)]="viewTask.startDate"
+                            name="startDate" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="endDate">End Date</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="date" class="form-control" id="endDate" required [(ngModel)]="viewTask.endDate"
+                            name="endDate" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" style="float:right;" class="btn btn-success"
+                            (click)="onViewTaskCancel()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+</div>
+<!--
+   Delete Task 
+-->
+<div class="container-fluid" *ngIf="activediv == 5">
+        <h4>Delete Task</h4>
+        <hr />
+        <form (ngSubmit)="onSubmit()" #deleteTaskForm="ngForm">
+            <br>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="task">Task Name</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="hidden" id="taskId" name="taskId" [(ngModel)]="deleteTask.taskId">
+                        <input type="text" class="form-control" id="task" required [(ngModel)]="deleteTask.task" name="task" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="priority">Priority</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="range" min="0" max="30" value="15" class="form-control" id="priority"
+                            [(ngModel)]="deleteTask.priority" name="priority" required
+                            oninput="priorityOutputId.value = priority.value" disabled>
+                        <output name="priorityOutputName" id="priorityOutputId">{{deleteTask.priority}}</output>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="parentId">Parent Task</label>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-control" id="parentId" name="parentId" required [(ngModel)]="deleteTask.parentId" disabled>
+                            <option *ngFor="let par of parent; let i = index" [value]="parent[i].parentId">
+                                {{parent[i].parentTask}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="startDate">Start Date</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="date" class="form-control" id="startDate" required [(ngModel)]="deleteTask.startDate"
+                            name="startDate" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="endDate">End Date</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="date" class="form-control" id="endDate" required [(ngModel)]="deleteTask.endDate"
+                            name="endDate" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-2">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-success" [disabled]="!editTaskForm.form.valid"
+                            (click)="onDeleteTaskSave()">Delete</button>
+                        <button type="button" style="float:right;" class="btn btn-success"
+                            (click)="onDeleteTaskCancel()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+</div>
